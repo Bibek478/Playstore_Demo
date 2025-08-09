@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,31 +8,44 @@ import {
   FlatList,
   TextInput,
   Modal,
-} from 'react-native';
-import { signOut } from 'firebase/auth';
-import { collection, addDoc, onSnapshot, deleteDoc, doc } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+} from "react-native";
+import { signOut } from "firebase/auth";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
+import { auth, db } from "../firebase";
 
 export default function HomeScreen() {
   const [notes, setNotes] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [newNote, setNewNote] = useState('');
+  const [newNote, setNewNote] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Subscribe to notes collection
+    // Subscribe to notes collection filtered by current user
+    const q = query(
+      collection(db, "notes"),
+      where("userId", "==", auth.currentUser.uid)
+    );
+
     const unsubscribe = onSnapshot(
-      collection(db, 'notes'),
+      q,
       (snapshot) => {
-        const notesData = snapshot.docs.map(doc => ({
+        const notesData = snapshot.docs.map((doc) => ({
           id: doc.id,
-          ...doc.data()
+          ...doc.data(),
         }));
         setNotes(notesData);
       },
       (error) => {
-        console.error('Error fetching notes:', error);
-        Alert.alert('Error', 'Failed to load notes');
+        console.error("Error fetching notes:", error);
+        Alert.alert("Error", "Failed to load notes");
       }
     );
 
@@ -43,27 +56,27 @@ export default function HomeScreen() {
     try {
       await signOut(auth);
     } catch (error) {
-      Alert.alert('Error', error.message);
+      Alert.alert("Error", error.message);
     }
   };
 
   const addNote = async () => {
     if (!newNote.trim()) {
-      Alert.alert('Error', 'Please enter a note');
+      Alert.alert("Error", "Please enter a note");
       return;
     }
 
     setLoading(true);
     try {
-      await addDoc(collection(db, 'notes'), {
+      await addDoc(collection(db, "notes"), {
         text: newNote,
         userId: auth.currentUser.uid,
         createdAt: new Date(),
       });
-      setNewNote('');
+      setNewNote("");
       setModalVisible(false);
     } catch (error) {
-      Alert.alert('Error', 'Failed to add note');
+      Alert.alert("Error", "Failed to add note");
     } finally {
       setLoading(false);
     }
@@ -71,9 +84,9 @@ export default function HomeScreen() {
 
   const deleteNote = async (noteId) => {
     try {
-      await deleteDoc(doc(db, 'notes', noteId));
+      await deleteDoc(doc(db, "notes", noteId));
     } catch (error) {
-      Alert.alert('Error', 'Failed to delete note');
+      Alert.alert("Error", "Failed to delete note");
     }
   };
 
@@ -103,7 +116,7 @@ export default function HomeScreen() {
       </Text>
 
       <FlatList
-        data={notes.filter(note => note.userId === auth.currentUser?.uid)}
+        data={notes}
         renderItem={renderNote}
         keyExtractor={(item) => item.id}
         style={styles.notesList}
@@ -147,7 +160,7 @@ export default function HomeScreen() {
                 disabled={loading}
               >
                 <Text style={styles.saveButtonText}>
-                  {loading ? 'Saving...' : 'Save'}
+                  {loading ? "Saving..." : "Save"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -161,36 +174,36 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
     paddingTop: 50,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     marginBottom: 20,
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   signOutButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: "#FF3B30",
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 6,
   },
   signOutText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   welcomeText: {
     fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
+    color: "#666",
+    textAlign: "center",
     marginBottom: 20,
   },
   notesList: {
@@ -198,14 +211,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   noteItem: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     padding: 15,
     borderRadius: 8,
     marginBottom: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    shadowColor: '#000',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -214,85 +227,85 @@ const styles = StyleSheet.create({
   noteText: {
     flex: 1,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   deleteButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: "#FF3B30",
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 4,
     marginLeft: 10,
   },
   deleteButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   addButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
     margin: 20,
     paddingVertical: 15,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   addButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
   modalContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
     borderRadius: 10,
     padding: 20,
-    width: '80%',
+    width: "80%",
     maxWidth: 400,
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   modalInput: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: "#ddd",
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
     marginBottom: 20,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
   modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
   modalButton: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 6,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 5,
   },
   cancelButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
   saveButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: "#007AFF",
   },
   cancelButtonText: {
-    color: '#333',
+    color: "#333",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   saveButtonText: {
-    color: '#fff',
+    color: "#fff",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
 });
