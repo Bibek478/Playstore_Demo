@@ -1,8 +1,9 @@
 {
   "expo": {
-    "name": "demo",
-    "slug": "demo",
+    "name": "My Notes App",
+    "slug": "my-notes-app",
     "version": "1.0.0",
+    "description": "A secure notes app with Firebase authentication and real-time sync",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -16,14 +17,25 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.mynotesapp.demo",
+      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "permissions": [
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ce7087c6-b8b9-480d-95ee-46939781cd51"
+      }
     }
   }
 }
